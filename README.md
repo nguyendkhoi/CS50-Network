@@ -68,9 +68,3 @@ This project is a Twitter-like social network where users can post text and imag
 -   `addLike(post_id)`: Sends a request to like/unlike a post and updates the like count in the UI.
 -   `addNewComment(e, post_id)`: Sends a request to add a comment to a post and updates the UI with the new comment.
 -   `getCookie(name)`: Retrieves the value of a cookie by its name (used for CSRF token).
-
-## Setup and Installation
-1. **Clone the repository:**
-   ```bash
-   git clone <repository_url>
-   cd <repository_directory>
