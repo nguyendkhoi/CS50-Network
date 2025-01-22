@@ -1,0 +1,132 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container">
+    <h1>{{ user.username }}</h1>
+    <div>
+        <p id="followers">{{ followers }} followers</p>
+        {% if is_following %}
+            <button id="un-follow-btn" class="btn btn-primary" data-user-id="{{ user.id }}">Unfollow</button>
+        {% else %}
+            <button id="un-follow-btn" class="btn btn-primary" data-user-id="{{ user.id }}">Follow</button>
+        {% endif %}
+    </div>
+    <h2>Posts:</h2>
+    <ul class="list-group">
+        {% for post in posts %} 
+            <li class="list-group-item mb-3 border-top">
+                <div class="post">
+                    <p>{{ post.text }}</p>
+                    <p>{{ post.date }}</p>
+                    <p><i class="fa-solid fa-heart"></i> <span id="like-post-{{ post.id }}">{{ post.nbLikes }}</span></p>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post Image" width="200">
+                    {% endif %}
+                    
+                    <h3>Comments</h3>
+                    <ul class="list-group" id="comment-post-{{ post.id }}">
+                        {% for comment in post.post_comment.all %}
+                        <li class="list-group-item">
+                            <small class="text-muted">User: {{comment.user.username}}</small>
+                            <p>{{comment.comment}}</p>
+                            <small class="text-muted">at {{comment.date}}</small>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">
+                            <p>No comments yet.</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Thêm buttons -->
+                    <div class="mt-3">
+                        <button class="btn btn-outline-secondary like-btn" data-post-id="{{ post.id }}">Like</button>
+                        <button class="btn btn-outline-secondary comment-btn" data-post-id="{{ post.id }}">Comment</button>
+                    </div>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item">
+                <p>No posts yet.</p>
+            </li>
+        {% endfor %}
+    </ul>
+    <nav aria-label="Post navigation">
+        <ul class="pagination">
+            <li class="page-item {% if not isPreviousPage %}disabled{% endif %}">
+                <a class="page-link" href="?page={% if isPreviousPage %}{{ page_obj.previous_page_number }}{% endif %}" 
+                aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% for page_num in paginator.page_range %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{page_num}}</a></li>
+            {% endfor %}
+            <li class="page-item {% if not isPreviousPage %}disabled{% endif %}">
+                <a class="page-link" href="?page={% if isNextPage %}{{ page_obj.previous_page_number }}{{ page_obj.next_page_number }}{% endif %}" 
+                aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            addLike(postId);
+        });
+    });
+
+    document.querySelectorAll('.comment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            this.disabled = true;
+            
+            const form = document.createElement('form');
+            const input = document.createElement('textarea');
+            input.autofocus = true;
+            input.classList.add("form-control", "mb-2", "mt-3");
+            input.rows = 2;
+            input.name = "text-comment";
+            input.placeholder = "Write your comment....";
+
+            const submitComment = document.createElement('button');
+            submitComment.type = "submit";
+            submitComment.textContent = "Comment";
+            submitComment.classList.add("btn", "btn-outline-primary", "mr-2");
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.classList.add("btn", "btn-outline-danger");
+            cancelBtn.textContent = "Cancel";
+            
+            const commentBtn = this;
+            cancelBtn.addEventListener('click', function() {
+                form.remove();
+                commentBtn.disabled = false;
+            });
+
+            form.appendChild(input);
+            form.appendChild(submitComment);
+            form.appendChild(cancelBtn);
+
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                addNewComment(event, postId)
+                    .then(() => {
+                        form.remove();
+                        commentBtn.disabled = false;
+                        input.value = '';
+                    });
+            });
+
+            this.parentElement.insertAdjacentElement('afterend', form);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "network/layout.html" %} 
+{% block body %}
+<div class="container">
+  <h2 class="text-center my-3">Create New Post</h2>
+  <form id="post-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %} {{ form.as_p }}  
+    <button  type="submit" class="btn btn-primary btn-md">Post</button>
+  </form>
+</div>
+{% endblock %}
